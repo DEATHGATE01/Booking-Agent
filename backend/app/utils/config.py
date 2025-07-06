@@ -3,7 +3,7 @@ Configuration settings for the TailorTalk Booking Agent
 """
 import os
 from typing import Optional
-from pydantic_settings import BaseSettings
+from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
