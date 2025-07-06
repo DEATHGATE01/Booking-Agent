@@ -40,14 +40,25 @@ STREAMLIT_PORT=8501
 5. Configure backend service manually (see below)
 6. Repeat for frontend
 
-### Manual Deploy:
-Follow the detailed guide in `render_deployment.md`
+### Backend Configuration:
+- **Name**: `tailortalk-backend`
+- **Language**: `Python 3` (or use Docker with existing Dockerfile)
+- **Root Directory**: `backend`
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+
+### Frontend Configuration:
+- **Name**: `tailortalk-frontend`
+- **Language**: `Python 3`
+- **Root Directory**: `frontend`
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `streamlit run streamlit_app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true`
 
 ## Step 3: Test Deployment
 
 Visit your frontend URL and test:
 - "Book a meeting tomorrow at 2 PM"
-- Should get proper AI responses and calendar integration
+- Should get proper AI responses via Gemini and calendar integration
 
 ## 🎯 TailorTalk Assignment Submission
 
@@ -56,6 +67,8 @@ After deployment, you'll have:
 - ✅ **Frontend App**: `https://tailortalk-frontend.onrender.com`  
 - ✅ **GitHub Repository**: Complete source code
 - ✅ **Live Demo**: Working conversational AI booking agent
+- ✅ **AI Provider**: Google Gemini (no OpenAI needed)
+- ✅ **Calendar Integration**: Google Calendar API
 
 ## 🚨 Troubleshooting
 
@@ -70,12 +83,13 @@ After deployment, you'll have:
 - **Service account error**: Use environment variable approach
 - **CORS errors**: Already handled in backend
 - **App sleeping**: Normal on free tier (15 min timeout)
+- **Gemini API errors**: Check API key is valid and has quota
 
 ## 📝 Alternative Platforms
 
-### Railway (if Render doesn't work):
-- See original Railway guide above
-- May have Nixpacks build issues
+### Railway:
+- Similar process but may have Nixpacks build issues
+- Use Docker configuration if Python build fails
 
 ### Fly.io:
 1. Install Fly CLI
@@ -83,4 +97,4 @@ After deployment, you'll have:
 3. Configure environment variables
 4. Deploy with `fly deploy`
 
-Perfect for TailorTalk internship submission! 🎉
+Perfect for TailorTalk internship submission using Google Gemini AI! 🎉
