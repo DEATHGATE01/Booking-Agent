@@ -1,0 +1,17 @@
+# Frontend Dependencies for TailorTalk Booking Agent - Simplified
+
+# Streamlit and UI
+streamlit>=1.28.0
+
+# HTTP client
+requests>=2.31.0
+httpx>=0.24.0
+
+# Date/time handling
+python-dateutil>=2.8.0
+
+# Environment
+python-dotenv>=1.0.0
+
+# Utilities
+pytz>=2023.3
