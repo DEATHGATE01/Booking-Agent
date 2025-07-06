@@ -30,28 +30,16 @@ class GoogleCalendarService:
     def _initialize_service(self):
         """Initialize Google Calendar service"""
         try:
-            # Try to load from environment variable first (for deployment)
-            service_account_json = os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON')
-            if service_account_json:
-                import json
-                service_account_info = json.loads(service_account_json)
-                credentials = service_account.Credentials.from_service_account_info(
-                    service_account_info,
-                    scopes=['https://www.googleapis.com/auth/calendar']
-                )
-                logger.info("Using service account from environment variable")
-            else:
-                # Fallback to file-based approach
-                credentials_path = self.settings.google_calendar_credentials_path
-                if not os.path.exists(credentials_path):
-                    logger.error(f"Credentials file not found: {credentials_path}")
-                    return
-                
-                credentials = service_account.Credentials.from_service_account_file(
-                    credentials_path,
-                    scopes=['https://www.googleapis.com/auth/calendar']
-                )
-                logger.info("Using service account from file")
+            # Load service account credentials
+            credentials_path = self.settings.google_calendar_credentials_path
+            if not os.path.exists(credentials_path):
+                logger.error(f"Credentials file not found: {credentials_path}")
+                return
+            
+            credentials = service_account.Credentials.from_service_account_file(
+                credentials_path,
+                scopes=['https://www.googleapis.com/auth/calendar']
+            )
             
             self.service = build('calendar', 'v3', credentials=credentials)
             logger.info("Google Calendar service initialized successfully")
@@ -66,19 +54,9 @@ class GoogleCalendarService:
             return {"available": False, "error": "Calendar service not initialized"}
         
         try:
-            # Ensure timezone-aware datetimes
-            if start_time.tzinfo is None:
-                # Assume local timezone if none specified
-                import pytz
-                local_tz = pytz.timezone(self.settings.timezone or 'UTC')
-                start_time = local_tz.localize(start_time)
-                end_time = local_tz.localize(end_time)
-            
-            # Convert to RFC3339 format with timezone
+            # Convert to RFC3339 format
             start_time_rfc = start_time.isoformat()
             end_time_rfc = end_time.isoformat()
-            
-            logger.info(f"Checking availability from {start_time_rfc} to {end_time_rfc}")
             
             # Query for events in the time range
             events_result = self.service.events().list(
@@ -129,28 +107,17 @@ class GoogleCalendarService:
             return {"success": False, "error": "Calendar service not initialized"}
         
         try:
-            import pytz
-            
-            start_datetime = event_data['start_datetime']
-            end_datetime = event_data['end_datetime']
-            
-            # Ensure timezone-aware datetimes
-            if start_datetime.tzinfo is None:
-                local_tz = pytz.timezone(self.settings.timezone or 'UTC')
-                start_datetime = local_tz.localize(start_datetime)
-                end_datetime = local_tz.localize(end_datetime)
-            
             # Prepare event object
             event = {
                 'summary': event_data.get('title', 'New Appointment'),
                 'description': event_data.get('description', ''),
                 'start': {
-                    'dateTime': start_datetime.isoformat(),
-                    'timeZone': self.settings.timezone or 'UTC',
+                    'dateTime': event_data['start_datetime'].isoformat(),
+                    'timeZone': self.settings.timezone,
                 },
                 'end': {
-                    'dateTime': end_datetime.isoformat(),
-                    'timeZone': self.settings.timezone or 'UTC',
+                    'dateTime': event_data['end_datetime'].isoformat(),
+                    'timeZone': self.settings.timezone,
                 },
             }
             
@@ -163,8 +130,6 @@ class GoogleCalendarService:
                 event['attendees'] = [
                     {'email': event_data['attendee_email']}
                 ]
-            
-            logger.info(f"Creating event: {event}")
             
             # Create the event
             created_event = self.service.events().insert(
@@ -206,9 +171,6 @@ class GoogleCalendarService:
             return []
         
         try:
-            import pytz
-            local_tz = pytz.timezone(self.settings.timezone or 'UTC')
-            
             available_slots = []
             current_date = start_date.date()
             end_date_only = end_date.date()
@@ -219,11 +181,6 @@ class GoogleCalendarService:
                     # Generate time slots for the day
                     day_start = datetime.combine(current_date, datetime.min.time().replace(hour=business_hours_start))
                     day_end = datetime.combine(current_date, datetime.min.time().replace(hour=business_hours_end))
-                    
-                    # Make timezone-aware
-                    if day_start.tzinfo is None:
-                        day_start = local_tz.localize(day_start)
-                        day_end = local_tz.localize(day_end)
                     
                     # Check each hour slot
                     current_time = day_start
@@ -253,13 +210,6 @@ class GoogleCalendarService:
                                  duration_minutes: int = 60,
                                  suggestions_count: int = 3) -> List[Dict[str, datetime]]:
         """Suggest alternative times if preferred time is not available"""
-        import pytz
-        
-        # Ensure timezone-aware datetime
-        if preferred_start.tzinfo is None:
-            local_tz = pytz.timezone(self.settings.timezone or 'UTC')
-            preferred_start = local_tz.localize(preferred_start)
-        
         # Look for alternatives within the next 7 days
         search_end = preferred_start + timedelta(days=7)
         
