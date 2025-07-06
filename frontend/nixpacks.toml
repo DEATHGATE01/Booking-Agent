@@ -1,0 +1,6 @@
+# Disable Nixpacks for Frontend
+[phases.build]
+disabled = true
+
+[phases.start]
+disabled = true

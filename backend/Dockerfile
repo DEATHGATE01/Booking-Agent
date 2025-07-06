@@ -20,8 +20,8 @@ COPY credentials/ ./credentials/
 ENV PYTHONPATH=/app
 ENV PORT=8000
 
-# Expose port (Railway will override with $PORT)
-EXPOSE $PORT
+# Expose port
+EXPOSE 8000
 
 # Start command (Railway will use its own command or the one in railway.toml)
 CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT

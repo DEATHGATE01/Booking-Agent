@@ -1,0 +1,10 @@
+# Disable Nixpacks - Force Docker Usage
+# This file tells Railway NOT to use Nixpacks
+
+[phases.build]
+# Explicitly disable Nixpacks
+disabled = true
+
+[phases.start]
+# Explicitly disable Nixpacks
+disabled = true

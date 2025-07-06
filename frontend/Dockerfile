@@ -19,8 +19,8 @@ COPY .streamlit/ .streamlit/
 # Set environment variables
 ENV PORT=8501
 
-# Expose port (Railway will override with $PORT)
-EXPOSE $PORT
+# Expose port
+EXPOSE 8501
 
 # Start command (Railway will use its own command or the one in railway.toml)
 CMD streamlit run streamlit_app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true

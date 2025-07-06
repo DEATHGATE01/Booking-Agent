@@ -1,4 +1,4 @@
-# Railway Backend Configuration
+# Backend Railway Configuration
 [build]
 builder = "dockerfile"
 dockerfilePath = "Dockerfile"

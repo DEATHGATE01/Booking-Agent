@@ -1,34 +1,8 @@
-# Railway Configuration for TailorTalk Booking Agent
-# This configures both backend and frontend services
-
-# Backend Service
-[[services]]
-name = "booking-agent-backend"
-source = "backend/"
+# Railway Configuration - Single Service
+[build]
 builder = "dockerfile"
-dockerfilePath = "backend/Dockerfile"
+dockerfilePath = "Dockerfile"
 
-[services.variables]
-PYTHONPATH = "/app"
-PORT = "8000"
-
-[services.deploy]
-startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
-healthcheckPath = "/health"
-healthcheckTimeout = 300
-restartPolicyType = "always"
-
-# Frontend Service
-[[services]]
-name = "booking-agent-frontend"
-source = "frontend/"
-builder = "dockerfile"
-dockerfilePath = "frontend/Dockerfile"
-
-[services.variables]
-PORT = "8501"
-
-[services.deploy]
-startCommand = "streamlit run streamlit_app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true"
+[deploy]
 healthcheckTimeout = 300
 restartPolicyType = "always"
