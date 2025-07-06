@@ -37,22 +37,32 @@ class AIService:
             return
         
         try:
-            if self.settings.openai_api_key:
+            # Check for valid OpenAI API key (not placeholder)
+            valid_openai_key = (self.settings.openai_api_key and 
+                              self.settings.openai_api_key != 'your-openai-api-key-here' and
+                              not self.settings.openai_api_key.startswith('your-'))
+            
+            # Check for valid Gemini API key
+            valid_gemini_key = (self.settings.gemini_api_key and 
+                              self.settings.gemini_api_key.startswith('AIza'))
+            
+            if valid_openai_key:
                 self.llm = ChatOpenAI(
                     api_key=self.settings.openai_api_key,
                     model="gpt-3.5-turbo",
                     temperature=0.1
                 )
                 logger.info("OpenAI ChatGPT initialized")
-            elif self.settings.gemini_api_key:
+            elif valid_gemini_key:
                 self.llm = ChatGoogleGenerativeAI(
-                    model="gemini-pro",
+                    model="gemini-1.5-flash",  # Updated model name
                     google_api_key=self.settings.gemini_api_key,
                     temperature=0.1
                 )
                 logger.info("Google Gemini initialized")
             else:
-                logger.warning("No API keys found. Using fallback text processing.")
+                logger.warning("No valid API keys found. Using fallback text processing.")
+                logger.info(f"OpenAI key valid: {valid_openai_key}, Gemini key valid: {valid_gemini_key}")
                 
         except Exception as e:
             logger.error(f"Failed to initialize LLM: {e}")
@@ -327,128 +337,3 @@ class AIService:
         except Exception as e:
             logger.error(f"Error parsing datetime: {e}")
             return None
-    
-    def call_functions_with_llm(self, user_message: str, available_functions: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Use LLM with function calling to process user requests"""
-        if not self.llm or not LANGCHAIN_AVAILABLE:
-            return {"error": "LLM not available for function calling"}
-        
-        try:
-            # Check if this is OpenAI (supports function calling)
-            if hasattr(self.llm, 'model_name') and 'gpt' in self.llm.model_name:
-                return self._openai_function_calling(user_message, available_functions)
-            else:
-                # Fallback to manual parsing for other LLMs
-                return self._manual_function_calling(user_message, available_functions)
-                
-        except Exception as e:
-            logger.error(f"Error in function calling: {e}")
-            return {"error": f"Function calling failed: {str(e)}"}
-    
-    def _openai_function_calling(self, user_message: str, available_functions: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Use OpenAI's native function calling"""
-        try:
-            import openai
-            from openai import OpenAI
-            
-            client = OpenAI(api_key=self.settings.openai_api_key)
-            
-            messages = [
-                {
-                    "role": "system",
-                    "content": "You are a helpful booking assistant. Use the available functions to help users book appointments, check availability, and manage their calendar."
-                },
-                {
-                    "role": "user",
-                    "content": user_message
-                }
-            ]
-            
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=messages,
-                functions=available_functions,
-                function_call="auto"
-            )
-            
-            message = response.choices[0].message
-            
-            if message.function_call:
-                return {
-                    "function_call": {
-                        "name": message.function_call.name,
-                        "arguments": json.loads(message.function_call.arguments)
-                    },
-                    "message": message.content
-                }
-            else:
-                return {
-                    "response": message.content,
-                    "function_call": None
-                }
-                
-        except Exception as e:
-            logger.error(f"OpenAI function calling error: {e}")
-            return {"error": f"OpenAI function calling failed: {str(e)}"}
-    
-    def _manual_function_calling(self, user_message: str, available_functions: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Manual function calling for non-OpenAI LLMs"""
-        # Analyze the message to determine if a function should be called
-        message_lower = user_message.lower()
-        
-        # Intent detection for function calling
-        if any(word in message_lower for word in ['book', 'schedule', 'create', 'make appointment']):
-            # Extract booking details and prepare for create_calendar_event
-            intent_result = self.extract_booking_intent(user_message)
-            extracted_data = intent_result.get("extracted_data", {})
-            
-            if extracted_data.get('date') and extracted_data.get('time'):
-                # Parse the datetime
-                start_dt = self.parse_natural_datetime(extracted_data['date'], extracted_data['time'])
-                if start_dt:
-                    end_dt = start_dt + timedelta(minutes=extracted_data.get('duration', 60))
-                    
-                    return {
-                        "function_call": {
-                            "name": "create_calendar_event",
-                            "arguments": {
-                                "title": extracted_data.get('title', 'Meeting'),
-                                "start_datetime": start_dt.isoformat(),
-                                "end_datetime": end_dt.isoformat(),
-                                "description": extracted_data.get('description'),
-                                "location": extracted_data.get('location')
-                            }
-                        }
-                    }
-        
-        elif any(word in message_lower for word in ['available', 'free', 'check']):
-            # Check availability
-            intent_result = self.extract_booking_intent(user_message)
-            extracted_data = intent_result.get("extracted_data", {})
-            
-            if extracted_data.get('date') and extracted_data.get('time'):
-                start_dt = self.parse_natural_datetime(extracted_data['date'], extracted_data['time'])
-                if start_dt:
-                    end_dt = start_dt + timedelta(minutes=extracted_data.get('duration', 60))
-                    
-                    return {
-                        "function_call": {
-                            "name": "check_calendar_availability",
-                            "arguments": {
-                                "start_datetime": start_dt.isoformat(),
-                                "end_datetime": end_dt.isoformat()
-                            }
-                        }
-                    }
-        
-        elif any(word in message_lower for word in ['upcoming', 'events', 'schedule']):
-            # Get upcoming events
-            return {
-                "function_call": {
-                    "name": "get_upcoming_events",
-                    "arguments": {"days_ahead": 7}
-                }
-            }
-        
-        # No function call needed
-        return {"function_call": None}

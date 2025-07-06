@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     api_host: str = "localhost"
     api_port: int = 8000
     
+    # Streamlit settings
+    streamlit_port: int = 8501
+    
     # Google Calendar settings
     google_calendar_credentials_path: str = "credentials/service-account-key.json"
     google_calendar_id: str = ""
