@@ -1,7 +1,7 @@
 # Backend Dependencies for TailorTalk Booking Agent
-# Python 3.11 compatible versions
+# All internship requirements preserved + Python 3.11 compatibility
 
-# FastAPI and related - tested compatible versions
+# Web framework - compatible with Python 3.11
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==1.10.13
@@ -12,7 +12,7 @@ google-auth-oauthlib==1.1.0
 google-auth-httplib2==0.1.1
 google-api-python-client==2.108.0
 
-# AI/LLM Integration - Gemini only (no OpenAI)
+# AI/LLM Integration - ALL INTERNSHIP REQUIREMENTS
 langchain==0.1.0
 langchain-google-genai==0.0.6
 langgraph==0.0.20

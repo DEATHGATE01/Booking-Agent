@@ -8,18 +8,12 @@ from typing import Dict, Any, Optional, List
 import logging
 
 try:
+    from langchain_openai import ChatOpenAI
     from langchain_google_genai import ChatGoogleGenerativeAI
     from langchain.schema import HumanMessage, SystemMessage
     LANGCHAIN_AVAILABLE = True
-    OPENAI_AVAILABLE = False
-    try:
-        from langchain_openai import ChatOpenAI
-        OPENAI_AVAILABLE = True
-    except ImportError:
-        logging.info("OpenAI not available. Using Gemini only.")
 except ImportError:
     LANGCHAIN_AVAILABLE = False
-    OPENAI_AVAILABLE = False
     logging.warning("LangChain not available. AI features will be limited.")
 
 from ..utils.config import get_settings
@@ -43,22 +37,32 @@ class AIService:
             return
         
         try:
-            if self.settings.openai_api_key and OPENAI_AVAILABLE:
+            # Check for valid OpenAI API key (not placeholder)
+            valid_openai_key = (self.settings.openai_api_key and 
+                              self.settings.openai_api_key != 'your-openai-api-key-here' and
+                              not self.settings.openai_api_key.startswith('your-'))
+            
+            # Check for valid Gemini API key
+            valid_gemini_key = (self.settings.gemini_api_key and 
+                              self.settings.gemini_api_key.startswith('AIza'))
+            
+            if valid_openai_key:
                 self.llm = ChatOpenAI(
                     api_key=self.settings.openai_api_key,
                     model="gpt-3.5-turbo",
                     temperature=0.1
                 )
                 logger.info("OpenAI ChatGPT initialized")
-            elif self.settings.gemini_api_key:
+            elif valid_gemini_key:
                 self.llm = ChatGoogleGenerativeAI(
-                    model="gemini-pro",
+                    model="gemini-1.5-flash",  # Updated model name
                     google_api_key=self.settings.gemini_api_key,
                     temperature=0.1
                 )
                 logger.info("Google Gemini initialized")
             else:
-                logger.warning("No API keys found. Using fallback text processing.")
+                logger.warning("No valid API keys found. Using fallback text processing.")
+                logger.info(f"OpenAI key valid: {valid_openai_key}, Gemini key valid: {valid_gemini_key}")
                 
         except Exception as e:
             logger.error(f"Failed to initialize LLM: {e}")
