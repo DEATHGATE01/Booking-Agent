@@ -35,10 +35,10 @@ STREAMLIT_PORT=8501
 ### Quick Deploy (Recommended):
 1. Go to https://render.com
 2. Click "New +" → "Web Service"  
-3. Connect your GitHub repository
-4. Render will detect the `render.yaml` file automatically
-5. Update environment variables in dashboard
-6. Deploy both services
+3. **If repos don't show up**: Use "Public Git repository" option
+4. Enter: `https://github.com/DEATHGATE01/Booking-Agent.git`
+5. Configure backend service manually (see below)
+6. Repeat for frontend
 
 ### Manual Deploy:
 Follow the detailed guide in `render_deployment.md`
