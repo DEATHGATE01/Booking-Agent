@@ -30,16 +30,28 @@ class GoogleCalendarService:
     def _initialize_service(self):
         """Initialize Google Calendar service"""
         try:
-            # Load service account credentials
-            credentials_path = self.settings.google_calendar_credentials_path
-            if not os.path.exists(credentials_path):
-                logger.error(f"Credentials file not found: {credentials_path}")
-                return
-            
-            credentials = service_account.Credentials.from_service_account_file(
-                credentials_path,
-                scopes=['https://www.googleapis.com/auth/calendar']
-            )
+            # Try to load from environment variable first (for deployment)
+            service_account_json = os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON')
+            if service_account_json:
+                import json
+                service_account_info = json.loads(service_account_json)
+                credentials = service_account.Credentials.from_service_account_info(
+                    service_account_info,
+                    scopes=['https://www.googleapis.com/auth/calendar']
+                )
+                logger.info("Using service account from environment variable")
+            else:
+                # Fallback to file-based approach
+                credentials_path = self.settings.google_calendar_credentials_path
+                if not os.path.exists(credentials_path):
+                    logger.error(f"Credentials file not found: {credentials_path}")
+                    return
+                
+                credentials = service_account.Credentials.from_service_account_file(
+                    credentials_path,
+                    scopes=['https://www.googleapis.com/auth/calendar']
+                )
+                logger.info("Using service account from file")
             
             self.service = build('calendar', 'v3', credentials=credentials)
             logger.info("Google Calendar service initialized successfully")

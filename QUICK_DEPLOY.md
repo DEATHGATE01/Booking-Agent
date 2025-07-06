@@ -1,8 +1,10 @@
-# 🚀 Quick Railway Deployment Guide
+# 🚀 Quick Deployment Guide for TailorTalk
+
+## 🌟 Recommended: Render.com Deployment
+
+Render.com is more reliable than Railway for Python apps with complex dependencies.
 
 ## Step 1: Prepare Environment Variables
-
-Create these environment variables for Railway deployment:
 
 ### Backend Environment Variables:
 ```
@@ -15,58 +17,70 @@ DEBUG=False
 TIMEZONE=UTC
 ```
 
+### Service Account Options:
+**Option A**: Upload file to `credentials/` folder in Render
+**Option B**: Add as environment variable:
+```
+GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"your-project",...}
+```
+
 ### Frontend Environment Variables:
 ```
-API_BASE_URL=https://your-backend-url.railway.app/api/v1
+API_BASE_URL=https://tailortalk-backend.onrender.com/api/v1
 STREAMLIT_PORT=8501
 ```
 
-## Step 2: Deploy Backend First
+## Step 2: Deploy on Render.com
 
-1. Go to https://railway.app
-2. Login with GitHub
-3. Click "New Project"
-4. Select "Deploy from GitHub repo"
-5. Choose your repository
-6. Select "backend" as root directory
-7. Add all backend environment variables
-8. Upload service-account-key.json file
-9. Deploy and save the backend URL
+### Quick Deploy (Recommended):
+1. Go to https://render.com
+2. Click "New +" → "Web Service"  
+3. Connect your GitHub repository
+4. Render will detect the `render.yaml` file automatically
+5. Update environment variables in dashboard
+6. Deploy both services
 
-## Step 3: Deploy Frontend
+### Manual Deploy:
+Follow the detailed guide in `render_deployment.md`
 
-1. Create new Railway service
-2. Same repository, select "frontend" as root directory  
-3. Add frontend environment variables (use backend URL from step 2)
-4. Deploy
-
-## Step 4: Test Deployment
+## Step 3: Test Deployment
 
 Visit your frontend URL and test:
 - "Book a meeting tomorrow at 2 PM"
-- Should get proper responses and calendar integration
+- Should get proper AI responses and calendar integration
 
-## Alternative: Render Deployment
-
-If Railway doesn't work, try Render.com:
-1. Connect GitHub repo
-2. Create Web Service for backend (Python)
-3. Create Web Service for frontend (Python)
-4. Same environment variables as above
-
-## Alternative: Fly.io Deployment
-
-1. Install Fly CLI
-2. Run `fly launch` in backend and frontend directories
-3. Configure environment variables
-4. Deploy with `fly deploy`
-
-## 🎯 Assignment Submission
+## 🎯 TailorTalk Assignment Submission
 
 After deployment, you'll have:
-- ✅ Backend API: https://your-backend.railway.app
-- ✅ Frontend App: https://your-frontend.railway.app  
-- ✅ GitHub repo with full source code
-- ✅ Working conversational AI booking agent
+- ✅ **Backend API**: `https://tailortalk-backend.onrender.com`
+- ✅ **Frontend App**: `https://tailortalk-frontend.onrender.com`  
+- ✅ **GitHub Repository**: Complete source code
+- ✅ **Live Demo**: Working conversational AI booking agent
+
+## 🚨 Troubleshooting
+
+### If deployment fails:
+1. Check build logs in Render dashboard
+2. Ensure all environment variables are set
+3. Verify `requirements.txt` files are complete
+4. Check service account JSON format
+
+### Common issues:
+- **Module not found**: Update requirements.txt
+- **Service account error**: Use environment variable approach
+- **CORS errors**: Already handled in backend
+- **App sleeping**: Normal on free tier (15 min timeout)
+
+## 📝 Alternative Platforms
+
+### Railway (if Render doesn't work):
+- See original Railway guide above
+- May have Nixpacks build issues
+
+### Fly.io:
+1. Install Fly CLI
+2. Run `fly launch` in backend/frontend directories
+3. Configure environment variables
+4. Deploy with `fly deploy`
 
 Perfect for TailorTalk internship submission! 🎉
