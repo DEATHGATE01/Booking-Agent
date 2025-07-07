@@ -9,12 +9,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy backend requirements and install dependencies
-COPY backend/requirements.txt .
+COPY ./backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend application code
-COPY backend/app/ ./app/
-COPY backend/credentials/ ./credentials/
+COPY ./backend/app/ ./app/
+
+# Create empty credentials directory (will be populated via environment variables)
+RUN mkdir -p ./credentials
 
 # Set environment variables
 ENV PYTHONPATH=/app
