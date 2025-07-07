@@ -1,15 +1,27 @@
-# Root Dockerfile - Forces Railway to use Docker
-# This is a fallback to ensure Railway uses Docker instead of Nixpacks
-
+# Root Dockerfile - Backend Service for Railway
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy everything
-COPY . .
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# This Dockerfile exists only to force Docker detection
-# Actual builds should use backend/Dockerfile or frontend/Dockerfile
+# Copy backend requirements and install dependencies
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Default to backend if no specific service is selected
-CMD ["echo", "Please deploy backend and frontend as separate services"]
+# Copy backend application code
+COPY backend/app/ ./app/
+COPY backend/credentials/ ./credentials/
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PORT=8000
+
+# Expose port
+EXPOSE 8000
+
+# Start command for backend
+CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
